@@ -1,16 +1,16 @@
 import React, { useState } from 'react'
-import OPENAI from 'openai'
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 import InputGroup from 'react-bootstrap/InputGroup';
-import demo from './logo.svg'
+// import demo from './logo.svg'
 import Spinner from 'react-bootstrap/Spinner';
 import "./style.css"
 import Card from 'react-bootstrap/Card';
 import Placeholder from 'react-bootstrap/Placeholder';
-const openai = new OPENAI({
-    
-});
+import Header from './Header';
+import Badge from 'react-bootstrap/Badge';
+import axios from 'axios';
+import toast, { Toaster } from 'react-hot-toast';
 
 export default function OpenAI() {
     const [input, setInput] = useState("")
@@ -37,20 +37,60 @@ export default function OpenAI() {
         // setIsSpinner(false)
         // setIsShowValue(true)
         // console.log(image_url);
+        axios.post("http://localhost:7000/openai", { data: input }).then((response) => {
+            if (response.data.error) {
+                toast.error(response.data.error)
+            }
+        })
+            .catch((error) => {
+                if (error.message) {
+                    toast.error(error.message)
+                }
+                else if (error.request) {
+                    toast.error("Server didnot respond")
+                }
+                else {
+                    toast.error(error)
+                }
+            })
 
-        await setTimeout(() => {
-            setIsSpinner(false)
-            setIsShowValue(true)
-        }, 3000)
+        // await setTimeout(() => {
+        //     setIsSpinner(false)
+        //     setIsShowValue(true)
+        // }, 3000)
+
+        await axios.get("http://localhost:7000/openai").then(async (response) => {
+            if (response.data.error) {
+                toast.error(response.data.error)
+            }
+            else {
+                console.log(response.data.msg)
+                setUrl(response.data.msg)
+            }
+        })
+        .catch((error) => {
+            if (error.message) {
+                toast.error(error.message)
+            }
+            else if (error.request) {
+                toast.error("Server didnot respond")
+            }
+            else {
+                toast.error(error)
+            }
+        })
+        setIsSpinner(false)
+        setIsShowValue(true)
 
 
     }
     return (
 
         <div>
+            <Header />
             <div >
                 <div className="header">
-                    <h1>OpenAI Demo Project</h1>
+                    <Badge bg="secondary"> <h1>Image Processing AI</h1></Badge>
                     <h5>Hi I am an Image Processing AI!</h5>
                     <p>You can ask me for images.</p>
                     <hr></hr>
@@ -87,7 +127,7 @@ export default function OpenAI() {
                                 <h5>"{input}"</h5>
                                 <hr></hr>
                                 <div className="image-container">
-                                    <img src={demo} alt="Session time expired"></img>
+                                    <img src={url} alt="Session time expired"></img>
                                 </div>
                                 <hr></hr>
                             </>
@@ -111,6 +151,7 @@ export default function OpenAI() {
                     <Button variant="info" onClick={() => ShowData()}>Get Image</Button>
                 </div>
             </div>
+            <Toaster />
         </div>
     )
 }
